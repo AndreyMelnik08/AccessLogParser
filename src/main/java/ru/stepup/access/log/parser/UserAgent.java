@@ -5,9 +5,9 @@ public class UserAgent {
     private final String browser;
 
 
-    public UserAgent(String userAgentString) {
-        this.os = extractOS(userAgentString);
-        this.browser = extractBrowser(userAgentString);
+    public UserAgent(String userAgent) {
+        this.os = extractOS(userAgent);
+        this.browser = extractBrowser(userAgent);
     }
 
     private String extractOS(String userAgent) {
@@ -40,5 +40,13 @@ public class UserAgent {
 
     public String getBrowser() {
         return browser;
+    }
+
+    @Override
+    public String toString() {
+        return "UserAgent{" +
+                "os='" + os + '\'' +
+                ", browser='" + browser + '\'' +
+                '}';
     }
 }

@@ -15,6 +15,8 @@ public class Main {
             int googleBotCount = 0;
             int yandexBotCount = 0;
             while ((line = reader.readLine()) != null) {
+                LogEntry logEntry = new LogEntry(line);
+                System.out.println(logEntry);
                 totalLines++;
                 int length = line.length();
                 if (length > 1024) {
@@ -35,6 +37,7 @@ public class Main {
                     }
                 }
             }
+
             System.out.println("Общее количество строк в файле: " + totalLines);
             System.out.println("Количество запросов от Googlebot: " + googleBotCount);
             System.out.println("Количество запросов от YandexBot: " + yandexBotCount);

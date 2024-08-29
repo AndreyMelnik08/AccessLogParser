@@ -2,6 +2,9 @@ package ru.stepup.access.log.parser;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LogEntry {
 
@@ -16,17 +19,22 @@ public class LogEntry {
     private final String referer;
     private final UserAgent userAgent;
 
+    private static final Pattern LOG_PATTERN = Pattern.compile("(\\S+) - - \\[(.+?)\\] \"(\\S+) (.+?) HTTP/\\S+\" (\\d{3}) (\\d+) \"([^\"]*)\" \"([^\"]*?)\"");
+
     public LogEntry(String logLine) {
-        String[] parts = logLine.split(" ");
-        this.ipAddress = parts[0];
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z");
-        this.timestamp = LocalDateTime.parse(parts[1] + " " + parts[2], formatter);
-        this.method = HttpMethod.valueOf(parts[3]);
-        this.requestPath = parts[4];
-        this.responseCode = Integer.parseInt(parts[5]);
-        this.dataSize = Integer.parseInt(parts[6]);
-        this.referer = parts[7];
-        this.userAgent = new UserAgent(parts[8]);
+        Matcher matcher = LOG_PATTERN.matcher(logLine);
+        if (matcher.find()) {
+            ipAddress = matcher.group(1);
+            timestamp = LocalDateTime.parse(matcher.group(2), DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z").withLocale(Locale.ENGLISH));
+            method = HttpMethod.valueOf(matcher.group(3));
+            requestPath = matcher.group(4);
+            responseCode = Integer.parseInt(matcher.group(5));
+            dataSize = Integer.parseInt(matcher.group(6));
+            referer = matcher.group(7);
+            userAgent = new UserAgent(matcher.group(8));
+            return;
+        }
+        throw new IllegalArgumentException("Invalid log entry format");
     }
 
     public String getIpAddress() {
@@ -60,4 +68,19 @@ public class LogEntry {
     public UserAgent getUserAgent() {
         return userAgent;
     }
+
+    @Override
+    public String toString() {
+        return "LogEntry{" +
+                "ipAddress='" + ipAddress + '\'' +
+                ", timestamp=" + timestamp +
+                ", method=" + method +
+                ", requestPath='" + requestPath + '\'' +
+                ", responseCode=" + responseCode +
+                ", dataSize=" + dataSize +
+                ", referer='" + referer + '\'' +
+                ", userAgent=" + userAgent +
+                '}';
+    }
 }
+
