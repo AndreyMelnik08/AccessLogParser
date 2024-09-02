@@ -18,7 +18,6 @@ public class Main {
             while ((line = reader.readLine()) != null) {
                 LogEntry logEntry = new LogEntry(line);
                 statistics.addEntry(logEntry);
-                System.out.println(logEntry);
                 totalLines++;
                 int length = line.length();
                 if (length > 1024) {
@@ -43,7 +42,9 @@ public class Main {
             System.out.println("Количество запросов от Googlebot: " + googleBotCount);
             System.out.println("Количество запросов от YandexBot: " + yandexBotCount);
             System.out.println(statistics.getPages());
+            System.out.println(statistics.getNonExistingPages());
             System.out.println(statistics.userAgentOSInfo());
+            System.out.println(statistics.userAgentBrowserInfo());
         } catch (IOException e) {
             e.printStackTrace();
         }
