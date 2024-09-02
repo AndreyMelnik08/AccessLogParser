@@ -6,6 +6,7 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        Statistics statistics = new Statistics();
         String path = "C:\\Users\\Компутер\\IdeaProjects\\AccessLogParser\\access.log";
         try {
             FileReader fileReader = new FileReader(path);
@@ -16,6 +17,7 @@ public class Main {
             int yandexBotCount = 0;
             while ((line = reader.readLine()) != null) {
                 LogEntry logEntry = new LogEntry(line);
+                statistics.addEntry(logEntry);
                 System.out.println(logEntry);
                 totalLines++;
                 int length = line.length();
@@ -37,10 +39,11 @@ public class Main {
                     }
                 }
             }
-
             System.out.println("Общее количество строк в файле: " + totalLines);
             System.out.println("Количество запросов от Googlebot: " + googleBotCount);
             System.out.println("Количество запросов от YandexBot: " + yandexBotCount);
+            System.out.println(statistics.getPages());
+            System.out.println(statistics.userAgentOSInfo());
         } catch (IOException e) {
             e.printStackTrace();
         }
