@@ -45,6 +45,7 @@ public class Main {
             System.out.println(statistics.getNonExistingPages());
             System.out.println(statistics.userAgentOSInfo());
             System.out.println(statistics.userAgentBrowserInfo());
+            statistics.calculateAverageRequestsPerHour();
         } catch (IOException e) {
             e.printStackTrace();
         }

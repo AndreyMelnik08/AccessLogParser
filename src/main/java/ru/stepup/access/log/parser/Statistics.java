@@ -1,9 +1,11 @@
 package ru.stepup.access.log.parser;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Statistics {
     private int totalTraffic;
@@ -14,6 +16,7 @@ public class Statistics {
     private HashSet<String> nonExistingPages = new HashSet();
     private HashMap<String, Integer> osCountMap = new HashMap();
     private HashMap<String, Integer> browserCountMap = new HashMap();
+    private List<ZonedDateTime> timestamps = new ArrayList<>();
     private int allEntriesOS = 0;
     private int allEntriesBrowser = 0;
 
@@ -23,6 +26,7 @@ public class Statistics {
         userAgentOSMap(entry.getUserAgent());
         userAgentBrowserMap(entry.getUserAgent());
         LocalDateTime entryTime = entry.getTimestamp();
+        averageSiteVisits(entry);
         if (minTime == null || entryTime.isBefore(minTime)) {
             minTime = entryTime;
         }
@@ -53,7 +57,7 @@ public class Statistics {
         }
     }
 
-    public void pagesSet (LogEntry entry) {
+    public void pagesSet(LogEntry entry) {
         if (entry.getResponseCode() == 404) {
             nonExistingPages.add(entry.getReferer());
         }
@@ -70,7 +74,7 @@ public class Statistics {
             double proportion = (double) count / allEntriesOS;
             OSInfo.put(osName, proportion);
         }
-            return OSInfo;
+        return OSInfo;
     }
 
     public HashMap<String, Double> userAgentBrowserInfo() {
@@ -84,7 +88,19 @@ public class Statistics {
         return browserInfo;
     }
 
+    //среднего количества посещений сайта за час
+    public void averageSiteVisits(LogEntry logEntry) {
+        if (!logEntry.getUserAgent().isBot()) {
+            ZonedDateTime zonedDateTime = logEntry.getTimestamp().atZone(ZoneId.systemDefault());
+            timestamps.add(zonedDateTime);
+        }
+    }
 
+    public void calculateAverageRequestsPerHour() {
+        Map requestsPerHour = timestamps.stream().collect(Collectors.groupingBy(timestamps -> timestamps.truncatedTo(ChronoUnit.HOURS), Collectors.counting()));
+        long totalHours = requestsPerHour.size();
+        long totalRequests = requestsPerHour.values().stream().mapToLong(Long::longValue);
+    }
 
     public HashSet<String> getPages() {
         return pages;
