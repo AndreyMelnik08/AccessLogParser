@@ -3,10 +3,12 @@ package ru.stepup.access.log.parser;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashSet;
 
 public class Main {
     public static void main(String[] args) throws IOException {
         Statistics statistics = new Statistics();
+        HashSet <Integer> resp = new HashSet<>();
         String path = "C:\\Users\\Компутер\\IdeaProjects\\AccessLogParser\\access.log";
         try {
             FileReader fileReader = new FileReader(path);
@@ -41,11 +43,10 @@ public class Main {
             System.out.println("Общее количество строк в файле: " + totalLines);
             System.out.println("Количество запросов от Googlebot: " + googleBotCount);
             System.out.println("Количество запросов от YandexBot: " + yandexBotCount);
-            System.out.println(statistics.getPages());
-            System.out.println(statistics.getNonExistingPages());
             System.out.println(statistics.userAgentOSInfo());
             System.out.println(statistics.userAgentBrowserInfo());
-            statistics.calculateAverageRequestsPerHour();
+            System.out.println("Среднее количество посещений сайта в час (не боты):" + statistics.calculateAverageRequestsPerHour());
+            System.out.println("Среднее количество ошибочных запросов в час: " + statistics.calculateAverageErroneousRequestsPerHour());
         } catch (IOException e) {
             e.printStackTrace();
         }

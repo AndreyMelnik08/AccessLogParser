@@ -17,6 +17,7 @@ public class Statistics {
     private HashMap<String, Integer> osCountMap = new HashMap();
     private HashMap<String, Integer> browserCountMap = new HashMap();
     private List<ZonedDateTime> timestamps = new ArrayList<>();
+    private List<ZonedDateTime> numberOfErroneousRequests = new ArrayList<>();
     private int allEntriesOS = 0;
     private int allEntriesBrowser = 0;
 
@@ -27,6 +28,7 @@ public class Statistics {
         userAgentBrowserMap(entry.getUserAgent());
         LocalDateTime entryTime = entry.getTimestamp();
         averageSiteVisits(entry);
+        averageErroneousRequests(entry);
         if (minTime == null || entryTime.isBefore(minTime)) {
             minTime = entryTime;
         }
@@ -58,10 +60,10 @@ public class Statistics {
     }
 
     public void pagesSet(LogEntry entry) {
-        if (entry.getResponseCode() == 404) {
+        if (entry.getResponseCode().getCode() == 404) {
             nonExistingPages.add(entry.getReferer());
         }
-        if (entry.getResponseCode() == 200) {
+        if (entry.getResponseCode().getCode() == 200) {
             pages.add(entry.getReferer());
         }
     }
@@ -88,7 +90,6 @@ public class Statistics {
         return browserInfo;
     }
 
-    //среднего количества посещений сайта за час
     public void averageSiteVisits(LogEntry logEntry) {
         if (!logEntry.getUserAgent().isBot()) {
             ZonedDateTime zonedDateTime = logEntry.getTimestamp().atZone(ZoneId.systemDefault());
@@ -96,17 +97,33 @@ public class Statistics {
         }
     }
 
-    public void calculateAverageRequestsPerHour() {
-        Map requestsPerHour = timestamps.stream().collect(Collectors.groupingBy(timestamps -> timestamps.truncatedTo(ChronoUnit.HOURS), Collectors.counting()));
+    public void averageErroneousRequests(LogEntry logEntry) {
+        if (logEntry.getResponseCode().isErroneousRequest()) {
+            ZonedDateTime zonedDateTime = logEntry.getTimestamp().atZone(ZoneId.systemDefault());
+            numberOfErroneousRequests.add(zonedDateTime);
+        }
+    }
+
+    public Long calculateAverageRequestsPerHour() {
+        Map<ZonedDateTime, Long> requestsPerHour = timestamps.stream().collect(Collectors.groupingBy
+                (timestamps -> timestamps.truncatedTo(ChronoUnit.HOURS), Collectors.counting()));
         long totalHours = requestsPerHour.size();
-        long totalRequests = requestsPerHour.values().stream().mapToLong(Long::longValue);
+        long totalRequests = requestsPerHour.values().stream().mapToLong(Long::longValue).sum();
+        if (totalHours == 0) {
+            return 0L;
+        }
+        return totalRequests / totalHours;
     }
 
-    public HashSet<String> getPages() {
-        return pages;
+    public Long calculateAverageErroneousRequestsPerHour() {
+        Map<ZonedDateTime, Long> erroneousRequestsPerHour = numberOfErroneousRequests.stream().collect(Collectors.groupingBy
+                (numberOfErroneousRequests -> numberOfErroneousRequests.truncatedTo(ChronoUnit.HOURS), Collectors.counting()));
+        long totalHours = erroneousRequestsPerHour.size();
+        long totalRequests = erroneousRequestsPerHour.values().stream().mapToLong(Long::longValue).sum();
+        if (totalHours == 0) {
+            return 0L;
+        }
+        return totalRequests / totalHours;
     }
 
-    public HashSet<String> getNonExistingPages() {
-        return nonExistingPages;
-    }
 }

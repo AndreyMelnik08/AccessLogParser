@@ -5,7 +5,6 @@ public class UserAgent {
     private final String browser;
     private final boolean isBot;
 
-
     public UserAgent(String userAgent) {
         this.os = extractOS(userAgent);
         this.browser = extractBrowser(userAgent);

@@ -14,7 +14,7 @@ public class LogEntry {
     private final LocalDateTime timestamp;
     private final HttpMethod method;
     private final String requestPath;
-    private final int responseCode;
+    private final ResponseCode responseCode;
     private final int dataSize;
     private final String referer;
     private final UserAgent userAgent;
@@ -28,7 +28,7 @@ public class LogEntry {
             timestamp = LocalDateTime.parse(matcher.group(2), DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z").withLocale(Locale.ENGLISH));
             method = HttpMethod.valueOf(matcher.group(3));
             requestPath = matcher.group(4);
-            responseCode = Integer.parseInt(matcher.group(5));
+            responseCode = new ResponseCode(Integer.parseInt(matcher.group(5)));
             dataSize = Integer.parseInt(matcher.group(6));
             referer = matcher.group(7);
             userAgent = new UserAgent(matcher.group(8));
@@ -53,7 +53,7 @@ public class LogEntry {
         return requestPath;
     }
 
-    public int getResponseCode() {
+    public ResponseCode getResponseCode() {
         return responseCode;
     }
 
