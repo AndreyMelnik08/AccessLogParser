@@ -8,7 +8,7 @@ import java.util.HashSet;
 public class Main {
     public static void main(String[] args) throws IOException {
         Statistics statistics = new Statistics();
-        HashSet <Integer> resp = new HashSet<>();
+        HashSet<Integer> resp = new HashSet<>();
         String path = "C:\\Users\\Компутер\\IdeaProjects\\AccessLogParser\\access.log";
         try {
             FileReader fileReader = new FileReader(path);
@@ -47,6 +47,9 @@ public class Main {
             System.out.println(statistics.userAgentBrowserInfo());
             System.out.println("Среднее количество посещений сайта в час (не боты):" + statistics.calculateAverageRequestsPerHour());
             System.out.println("Среднее количество ошибочных запросов в час: " + statistics.calculateAverageErroneousRequestsPerHour());
+            System.out.println("Пиковая посещаемость сайта за одну секунду: " + statistics.calculatePeakVisitsPerSecond());
+            System.out.println("Список доменов: " + statistics.getDomainSet());
+            System.out.println("Максимальная посещаемость одним пользователем: " + statistics.maxVisitsBySingleUser());
         } catch (IOException e) {
             e.printStackTrace();
         }

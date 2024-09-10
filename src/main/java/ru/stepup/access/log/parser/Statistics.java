@@ -1,5 +1,9 @@
 package ru.stepup.access.log.parser;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -18,10 +22,16 @@ public class Statistics {
     private HashMap<String, Integer> browserCountMap = new HashMap();
     private List<ZonedDateTime> timestamps = new ArrayList<>();
     private List<ZonedDateTime> numberOfErroneousRequests = new ArrayList<>();
+    private Set<String> ipAdressesNonBot = new HashSet<>();
+    private Set<String> domainSet = new HashSet<>();
     private int allEntriesOS = 0;
     private int allEntriesBrowser = 0;
 
-    public void addEntry(LogEntry entry) {
+    public Set<String> getDomainSet() {
+        return domainSet;
+    }
+
+    public void addEntry(LogEntry entry) throws MalformedURLException {
         totalTraffic += entry.getDataSize();
         pagesSet(entry);
         userAgentOSMap(entry.getUserAgent());
@@ -29,6 +39,7 @@ public class Statistics {
         LocalDateTime entryTime = entry.getTimestamp();
         averageSiteVisits(entry);
         averageErroneousRequests(entry);
+        addRefererDomains(entry);
         if (minTime == null || entryTime.isBefore(minTime)) {
             minTime = entryTime;
         }
@@ -94,6 +105,7 @@ public class Statistics {
         if (!logEntry.getUserAgent().isBot()) {
             ZonedDateTime zonedDateTime = logEntry.getTimestamp().atZone(ZoneId.systemDefault());
             timestamps.add(zonedDateTime);
+            ipAdressesNonBot.add(logEntry.getIpAddress());
         }
     }
 
@@ -124,6 +136,36 @@ public class Statistics {
             return 0L;
         }
         return totalRequests / totalHours;
+    }
+
+    public Integer calculatePeakVisitsPerSecond() {
+        Map<Integer, Integer> visitsPerSecond = new HashMap<>();
+        for (ZonedDateTime timestamp : timestamps) {
+            int secondKey = (int) timestamp.toEpochSecond();
+            visitsPerSecond.put(secondKey, visitsPerSecond.getOrDefault(secondKey, 0) + 1);
+        }
+        return visitsPerSecond.values().stream().max(Integer::compareTo).orElse(0);
+    }
+
+    public void addRefererDomains(LogEntry logEntry) {
+        if (!logEntry.getReferer().equals("-")) {
+            String decodedReferer = URLDecoder.decode(logEntry.getReferer(), StandardCharsets.UTF_8);
+            try {
+                URL url = new URL(decodedReferer);
+                domainSet.add(url.getHost());
+            } catch (MalformedURLException e) {
+                System.out.println("Некорректный URL: " + decodedReferer);
+            }
+
+        }
+    }
+
+    public int maxVisitsBySingleUser() {
+        Map<String, Integer> visitCounts = new HashMap<>();
+        for (String ipAddress : ipAdressesNonBot) {
+            visitCounts.put(ipAddress, visitCounts.getOrDefault(ipAddress, 0) + 1);
+        }
+        return visitCounts.values().stream().max(Integer::compareTo).orElse(0);
     }
 
 }
